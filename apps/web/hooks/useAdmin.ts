@@ -1,9 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
-
-// ─── Tipler ──────────────────────────────────────────────────────────────────
+import { api } from '@/lib/api-client';
 
 export interface AdminStats {
   totalUsers: number;
@@ -39,34 +37,15 @@ export interface AdminUser {
   _count: { listings: number; offers: number; payments: number };
 }
 
-export interface AdminListing {
-  id: string;
-  title: string;
-  city: string;
-  status: string;
-  dealType: string;
-  createdAt: string;
-  owner: { id: string; fullName: string; email: string };
-  _count: { offers: number };
-}
-
-// ─── Dashboard ───────────────────────────────────────────────────────────────
-
 export function useAdminStats() {
   return useQuery<AdminStats>({
     queryKey: ['admin', 'stats'],
-    queryFn: () => apiClient('/admin/stats'),
+    queryFn: () => api.get<AdminStats>('/admin/stats'),
   });
 }
 
-// ─── Kullanıcılar ─────────────────────────────────────────────────────────────
-
 export function useAdminUsers(params: {
-  page?: number;
-  limit?: number;
-  status?: string;
-  role?: string;
-  q?: string;
+  page?: number; limit?: number; status?: string; role?: string; q?: string;
 }) {
   return useQuery({
     queryKey: ['admin', 'users', params],
@@ -77,7 +56,7 @@ export function useAdminUsers(params: {
       if (params.status) sp.set('status', params.status);
       if (params.role) sp.set('role', params.role);
       if (params.q) sp.set('q', params.q);
-      return apiClient(`/admin/users?${sp.toString()}`);
+      return api.get(`/admin/users?${sp.toString()}`);
     },
   });
 }
@@ -85,7 +64,7 @@ export function useAdminUsers(params: {
 export function useAdminUser(userId: string) {
   return useQuery<AdminUser>({
     queryKey: ['admin', 'users', userId],
-    queryFn: () => apiClient(`/admin/users/${userId}`),
+    queryFn: () => api.get<AdminUser>(`/admin/users/${userId}`),
     enabled: !!userId,
   });
 }
@@ -93,61 +72,33 @@ export function useAdminUser(userId: string) {
 export function useUpdateUserStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      userId,
-      status,
-      reason,
-      adminNote,
-    }: {
-      userId: string;
-      status: string;
-      reason?: string;
-      adminNote?: string;
-    }) =>
-      apiClient(`/admin/users/${userId}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status, reason, adminNote }),
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
-      qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
-      qc.invalidateQueries({ queryKey: ['admin', 'verifications'] });
-    },
-  });
-}
-
-// ─── Doğrulama ────────────────────────────────────────────────────────────────
-
-export function usePendingVerifications() {
-  return useQuery<AdminUser[]>({
-    queryKey: ['admin', 'verifications', 'pending'],
-    queryFn: () => apiClient('/admin/verifications/pending'),
-  });
-}
-
-export function useReviewVerification() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      userId,
-      action,
-      reason,
-    }: {
-      userId: string;
-      action: 'approve' | 'reject';
-      reason?: string;
-    }) =>
-      apiClient(`/admin/verifications/${userId}/review`, {
-        method: 'POST',
-        body: JSON.stringify({ action, reason }),
-      }),
+    mutationFn: ({ userId, status, reason, adminNote }: {
+      userId: string; status: string; reason?: string; adminNote?: string;
+    }) => api.patch(`/admin/users/${userId}/status`, { status, reason, adminNote }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin'] });
     },
   });
 }
 
-// ─── İlanlar ─────────────────────────────────────────────────────────────────
+export function usePendingVerifications() {
+  return useQuery<AdminUser[]>({
+    queryKey: ['admin', 'verifications', 'pending'],
+    queryFn: () => api.get<AdminUser[]>('/admin/verifications/pending'),
+  });
+}
+
+export function useReviewVerification() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, action, reason }: {
+      userId: string; action: 'approve' | 'reject'; reason?: string;
+    }) => api.post(`/admin/verifications/${userId}/review`, { action, reason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin'] });
+    },
+  });
+}
 
 export function useAdminListings(params: { page?: number; limit?: number; status?: string }) {
   return useQuery({
@@ -157,7 +108,7 @@ export function useAdminListings(params: { page?: number; limit?: number; status
       if (params.page) sp.set('page', String(params.page));
       if (params.limit) sp.set('limit', String(params.limit));
       if (params.status) sp.set('status', params.status);
-      return apiClient(`/admin/listings?${sp.toString()}`);
+      return api.get(`/admin/listings?${sp.toString()}`);
     },
   });
 }
@@ -165,22 +116,11 @@ export function useAdminListings(params: { page?: number; limit?: number; status
 export function useSetListingStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      listingId,
-      status,
-      reason,
-    }: {
-      listingId: string;
-      status: string;
-      reason?: string;
-    }) =>
-      apiClient(`/admin/listings/${listingId}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status, reason }),
-      }),
+    mutationFn: ({ listingId, status, reason }: {
+      listingId: string; status: string; reason?: string;
+    }) => api.patch(`/admin/listings/${listingId}/status`, { status, reason }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'listings'] });
-      qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
+      qc.invalidateQueries({ queryKey: ['admin'] });
     },
   });
 }
