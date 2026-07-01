@@ -19,7 +19,13 @@ export function useAuth() {
     const tokens = await api.post<AuthTokens>('/auth/login', data);
     const me = await fetchMe(tokens.accessToken);
     setSession(me, tokens);
-    router.push(me.role === 'CONTRACTOR' ? '/dashboard/offers' : '/dashboard/listings');
+    if (me.role === 'ADMIN') {
+      router.push('/admin');
+    } else if (me.role === 'CONTRACTOR') {
+      router.push('/dashboard/offers');
+    } else {
+      router.push('/dashboard/listings');
+    }
   }
 
   async function logout() {
