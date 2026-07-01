@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
+import { NotificationBell } from '../../components/NotificationBell';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -59,6 +60,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <NotificationBell />
             <span className="text-sm text-gray-500">{user.email}</span>
             <button
               onClick={logout}
