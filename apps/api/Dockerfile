@@ -7,7 +7,7 @@ COPY . .
 RUN pnpm install --frozen-lockfile
 
 # schema.prisma monorepo kökünde olduğu için path açıkça belirtiliyor
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN ./node_modules/.bin/prisma generate --schema=./prisma/schema.prisma
 
 RUN pnpm --filter @muteahitt/shared build
 
