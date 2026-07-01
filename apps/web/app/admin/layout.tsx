@@ -10,6 +10,9 @@ const NAV_ITEMS = [
   { href: '/admin/users', label: 'Kullanıcılar' },
   { href: '/admin/verifications', label: 'Doğrulama Bekleyenler' },
   { href: '/admin/listings', label: 'İlanlar' },
+  { href: '/admin/payments', label: 'Ödemeler' },
+  { href: '/admin/announcements', label: 'Duyurular' },
+  { href: '/admin/audit-logs', label: 'Audit Log' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

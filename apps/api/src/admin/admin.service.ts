@@ -265,6 +265,119 @@ export class AdminService {
     return { items, meta: { total, page: safePage, limit: safeLimit, pageCount: Math.ceil(total / safeLimit) } };
   }
 
+  // ─── Ödeme yönetimi ──────────────────────────────────────────────────────
+
+  async getPaymentStats() {
+    const [total, completed, pending, totalRevenue] = await Promise.all([
+      this.prisma.payment.count(),
+      this.prisma.payment.count({ where: { status: 'COMPLETED' } }),
+      this.prisma.payment.count({ where: { status: 'PENDING' } }),
+      this.prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'COMPLETED' } }),
+    ]);
+    return { total, completed, pending, totalRevenue: totalRevenue._sum.amount ?? 0 };
+  }
+
+  async listPayments(page = 1, limit = 20) {
+    const [total, items] = await this.prisma.$transaction([
+      this.prisma.payment.count(),
+      this.prisma.payment.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, amount: true, currency: true, status: true, type: true,
+          createdAt: true, providerRef: true,
+          buyer: { select: { id: true, fullName: true, email: true } },
+          offer: { select: { id: true, listing: { select: { title: true, city: true } } } },
+        },
+      }),
+    ]);
+    return { items, meta: { total, page, limit, pageCount: Math.ceil(total / limit) } };
+  }
+
+  // ─── Dashboard trend verileri ─────────────────────────────────────────────
+
+  async getDashboardTrends() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [usersByDay, listingsByDay, revenueByDay] = await Promise.all([
+      this.prisma.$queryRaw`
+        SELECT DATE("createdAt") as date, COUNT(*)::int as count
+        FROM users
+        WHERE "createdAt" >= ${thirtyDaysAgo}
+        GROUP BY DATE("createdAt")
+        ORDER BY date ASC
+      `,
+      this.prisma.$queryRaw`
+        SELECT DATE("createdAt") as date, COUNT(*)::int as count
+        FROM listings
+        WHERE "createdAt" >= ${thirtyDaysAgo}
+        GROUP BY DATE("createdAt")
+        ORDER BY date ASC
+      `,
+      this.prisma.$queryRaw`
+        SELECT DATE("createdAt") as date, COALESCE(SUM(amount), 0)::float as total
+        FROM payments
+        WHERE "createdAt" >= ${thirtyDaysAgo} AND status = 'COMPLETED'
+        GROUP BY DATE("createdAt")
+        ORDER BY date ASC
+      `,
+    ]);
+
+    return { usersByDay, listingsByDay, revenueByDay };
+  }
+
+  // ─── Audit log ────────────────────────────────────────────────────────────
+
+  async listAuditLogs(page = 1, limit = 20) {
+    const [total, items] = await this.prisma.$transaction([
+      this.prisma.auditLog.count(),
+      this.prisma.auditLog.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, entityType: true, entityId: true, action: true,
+          note: true, ipAddress: true, createdAt: true,
+          before: true, after: true,
+          admin: { select: { id: true, fullName: true, email: true } },
+        },
+      }),
+    ]);
+    return { items, meta: { total, page, limit, pageCount: Math.ceil(total / limit) } };
+  }
+
+  // ─── Duyuru ───────────────────────────────────────────────────────────────
+
+  async sendAnnouncement(adminId: string, title: string, body: string) {
+    const users = await this.prisma.user.findMany({
+      where: { status: 'ACTIVE' },
+      select: { id: true },
+    });
+
+    await this.prisma.notification.createMany({
+      data: users.map((u) => ({
+        userId: u.id,
+        type: 'ANNOUNCEMENT' as NotificationType,
+        title,
+        body,
+      })),
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        adminId,
+        entityType: 'ANNOUNCEMENT',
+        entityId: 'all',
+        action: 'SEND_ANNOUNCEMENT',
+        after: { title, body, recipientCount: users.length },
+      },
+    });
+
+    return { sent: users.length };
+  }
+
   async setListingStatus(adminId: string, listingId: string, status: ListingStatus, reason?: string) {
     const listing = await this.prisma.listing.findUnique({
       where: { id: listingId },

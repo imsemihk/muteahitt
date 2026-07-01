@@ -68,17 +68,21 @@ export default function AdminUserDetailPage() {
 
       {/* Doğrulama */}
       {(user.individualVerification || user.companyVerification) && (
-        <div className="bg-white border rounded-lg p-5 text-sm">
+        <div className="bg-white border rounded-lg p-5 text-sm space-y-3">
           <h2 className="font-semibold text-gray-700 mb-3">Kimlik Doğrulama</h2>
           {user.individualVerification && (
-            <p className="text-gray-600">
-              Bireysel — NVI: {user.individualVerification.nviVerified ? '✓ Doğrulandı' : 'Bekliyor'}
-            </p>
+            <div className="space-y-1">
+              <p className="font-medium text-gray-700">Bireysel Doğrulama</p>
+              <Row label="NVI Durumu" value={user.individualVerification.nviVerified ? 'Doğrulandı' : 'Bekliyor'} />
+              <Row label="Başvuru Tarihi" value={new Date(user.individualVerification.createdAt).toLocaleString('tr-TR')} />
+            </div>
           )}
           {user.companyVerification && (
-            <p className="text-gray-600">
-              {user.companyVerification.companyTitle} (VKN: {user.companyVerification.taxNumber})
-            </p>
+            <div className="space-y-1">
+              <p className="font-medium text-gray-700">Şirket Doğrulama</p>
+              <Row label="Şirket Adı" value={user.companyVerification.companyTitle} />
+              <Row label="Vergi No" value={user.companyVerification.taxNumber} />
+            </div>
           )}
         </div>
       )}
@@ -86,20 +90,38 @@ export default function AdminUserDetailPage() {
       {/* Belgeler */}
       {user.verificationDocuments.length > 0 && (
         <div className="bg-white border rounded-lg p-5 text-sm">
-          <h2 className="font-semibold text-gray-700 mb-3">Belgeler</h2>
-          <ul className="space-y-2">
+          <h2 className="font-semibold text-gray-700 mb-3">Doğrulama Belgeleri</h2>
+          <ul className="space-y-3">
             {user.verificationDocuments.map((doc) => (
-              <li key={doc.id} className="flex items-center justify-between">
-                <span className="text-gray-700">{doc.fileName} <span className="text-gray-400 text-xs">({doc.type})</span></span>
-                <div className="flex gap-3 items-center">
-                  {doc.reviewedAt ? (
-                    <span className="text-xs text-green-600">İncelendi</span>
-                  ) : (
-                    <span className="text-xs text-amber-600">Bekliyor</span>
-                  )}
-                  <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline text-xs">
-                    Görüntüle
-                  </a>
+              <li key={doc.id} className="border rounded-md p-3 bg-gray-50">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="font-medium text-gray-800">{doc.fileName}</span>
+                    <span className="ml-2 text-xs text-gray-400">({doc.type})</span>
+                    {doc.reviewedAt && (
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        İncelendi: {new Date(doc.reviewedAt).toLocaleString('tr-TR')}
+                      </div>
+                    )}
+                    {doc.reviewNote && (
+                      <div className="text-xs text-gray-500 mt-0.5">Not: {doc.reviewNote}</div>
+                    )}
+                  </div>
+                  <div className="flex gap-2 items-center shrink-0">
+                    {doc.reviewedAt ? (
+                      <span className="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">İncelendi</span>
+                    ) : (
+                      <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Bekliyor</span>
+                    )}
+                    <a
+                      href={doc.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-indigo-600 hover:underline font-medium"
+                    >
+                      Görüntüle →
+                    </a>
+                  </div>
                 </div>
               </li>
             ))}
@@ -108,40 +130,53 @@ export default function AdminUserDetailPage() {
       )}
 
       {/* Durum değiştir */}
-      <div className="bg-white border rounded-lg p-5 space-y-3 text-sm">
-        <h2 className="font-semibold text-gray-700">Durum Değiştir</h2>
-        <select
-          value={newStatus}
-          onChange={(e) => setNewStatus(e.target.value)}
-          className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">Yeni durum seçin...</option>
+      <div className="bg-white border rounded-lg p-5 space-y-4 text-sm">
+        <div>
+          <h2 className="font-semibold text-gray-700">Durum Değiştir</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Mevcut durum: <span className="font-medium text-gray-600">{user.status}</span></p>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
           {STATUS_OPTIONS.filter((o) => o.value !== user.status).map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => setNewStatus(newStatus === o.value ? '' : o.value)}
+              className={`px-3 py-2 rounded-md border text-left text-sm font-medium transition-colors ${
+                newStatus === o.value
+                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+              }`}
+            >
+              {o.label}
+            </button>
           ))}
-        </select>
-        <input
-          type="text"
-          placeholder="Sebep (kullanıcıya gösterilir)"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        <input
-          type="text"
-          placeholder="Admin notu (gizli)"
-          value={adminNote}
-          onChange={(e) => setAdminNote(e.target.value)}
-          className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        {error && <p className="text-red-600">{error}</p>}
-        {success && <p className="text-green-600">{success}</p>}
+        </div>
+        {newStatus && (
+          <div className="space-y-3">
+            <input
+              type="text"
+              placeholder="Sebep (kullanıcıya bildirim olarak gönderilir)"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <input
+              type="text"
+              placeholder="Admin notu (sadece admin panelinde görünür, gizli)"
+              value={adminNote}
+              onChange={(e) => setAdminNote(e.target.value)}
+              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        )}
+        {error && <p className="text-red-600 bg-red-50 px-3 py-2 rounded-md border border-red-200">{error}</p>}
+        {success && <p className="text-green-600 bg-green-50 px-3 py-2 rounded-md border border-green-200">{success}</p>}
         <button
           onClick={handleStatusUpdate}
           disabled={!newStatus || updateStatus.isPending}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium disabled:opacity-40 hover:bg-indigo-700"
+          className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium disabled:opacity-40 hover:bg-indigo-700 transition-colors"
         >
-          {updateStatus.isPending ? 'Güncelleniyor...' : 'Güncelle'}
+          {updateStatus.isPending ? 'Güncelleniyor...' : `"${STATUS_OPTIONS.find(o => o.value === newStatus)?.label ?? '...'}" Olarak Güncelle`}
         </button>
       </div>
     </div>

@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   Query,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -98,5 +99,38 @@ export class AdminController {
     @Body() body: { status: ListingStatus; reason?: string },
   ) {
     return this.adminService.setListingStatus(admin.id, listingId, body.status, body.reason);
+  }
+
+  // ─── Ödemeler ────────────────────────────────────────────────────────────
+
+  @Get('payments/stats')
+  getPaymentStats() {
+    return this.adminService.getPaymentStats();
+  }
+
+  @Get('payments')
+  getPayments(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.adminService.listPayments(Number(page) || 1, Number(limit) || 20);
+  }
+
+  // ─── Dashboard trends ─────────────────────────────────────────────────────
+
+  @Get('dashboard/trends')
+  getDashboardTrends() {
+    return this.adminService.getDashboardTrends();
+  }
+
+  // ─── Audit logs ──────────────────────────────────────────────────────────
+
+  @Get('audit-logs')
+  getAuditLogs(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.adminService.listAuditLogs(Number(page) || 1, Number(limit) || 20);
+  }
+
+  // ─── Duyurular ───────────────────────────────────────────────────────────
+
+  @Post('announcements')
+  sendAnnouncement(@Request() req: any, @Body() body: { title: string; body: string }) {
+    return this.adminService.sendAnnouncement(req.user.id, body.title, body.body);
   }
 }

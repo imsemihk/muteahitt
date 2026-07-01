@@ -124,3 +124,48 @@ export function useSetListingStatus() {
     },
   });
 }
+
+export function useAdminPayments(params: { page?: number; limit?: number }) {
+  return useQuery({
+    queryKey: ['admin', 'payments', params],
+    queryFn: () => {
+      const sp = new URLSearchParams();
+      if (params.page) sp.set('page', String(params.page));
+      if (params.limit) sp.set('limit', String(params.limit));
+      return api.get(`/admin/payments?${sp.toString()}`);
+    },
+  });
+}
+
+export function useAdminPaymentStats() {
+  return useQuery({
+    queryKey: ['admin', 'payments', 'stats'],
+    queryFn: () => api.get('/admin/payments/stats'),
+  });
+}
+
+export function useDashboardTrends() {
+  return useQuery({
+    queryKey: ['admin', 'dashboard', 'trends'],
+    queryFn: () => api.get('/admin/dashboard/trends'),
+  });
+}
+
+export function useAuditLogs(params: { page?: number; limit?: number }) {
+  return useQuery({
+    queryKey: ['admin', 'audit-logs', params],
+    queryFn: () => {
+      const sp = new URLSearchParams();
+      if (params.page) sp.set('page', String(params.page));
+      if (params.limit) sp.set('limit', String(params.limit));
+      return api.get(`/admin/audit-logs?${sp.toString()}`);
+    },
+  });
+}
+
+export function useSendAnnouncement() {
+  return useMutation({
+    mutationFn: ({ title, body }: { title: string; body: string }) =>
+      api.post('/admin/announcements', { title, body }),
+  });
+}
