@@ -1,5 +1,5 @@
-FROM node:20-alpine AS base
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM node:22-alpine AS base
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 WORKDIR /app
 
 # ─── Bağımlılıklar ───────────────────────────────────────────────────────────
@@ -20,8 +20,8 @@ RUN pnpm --filter @muteahitt/shared build
 RUN pnpm --filter @muteahitt/api build
 
 # ─── Production ──────────────────────────────────────────────────────────────
-FROM node:20-alpine AS runner
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM node:22-alpine AS runner
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 WORKDIR /app
 
 COPY --from=builder /app/package.json ./
