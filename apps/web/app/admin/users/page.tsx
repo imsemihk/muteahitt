@@ -96,7 +96,7 @@ export default function AdminUsersPage() {
                     ))}
                   </tr>
                 ))
-              : data?.items?.map((user: any) => (
+              : (data as any)?.items?.map((user: any) => (
                   <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <p className="font-medium text-gray-900">{user.fullName}</p>
@@ -125,13 +125,13 @@ export default function AdminUsersPage() {
                 ))}
           </tbody>
         </table>
-        {!isLoading && data?.items?.length === 0 && (
+        {!isLoading && (data as any)?.items?.length === 0 && (
           <p className="text-center text-gray-500 py-10">Kullanıcı bulunamadı.</p>
         )}
       </div>
 
       {/* Sayfalama */}
-      {data?.meta && data.meta.pageCount > 1 && (
+      {(data as any)?.meta && (data as any).meta.pageCount > 1 && (
         <div className="flex justify-center gap-2 mt-4">
           <button
             disabled={page <= 1}
@@ -141,10 +141,10 @@ export default function AdminUsersPage() {
             ‹ Önceki
           </button>
           <span className="px-3 py-1.5 text-sm text-gray-600">
-            {page} / {data.meta.pageCount}
+            {page} / {(data as any).meta.pageCount}
           </span>
           <button
-            disabled={page >= data.meta.pageCount}
+            disabled={page >= (data as any).meta.pageCount}
             onClick={() => setPage((p) => p + 1)}
             className="px-3 py-1.5 border rounded text-sm disabled:opacity-40"
           >
