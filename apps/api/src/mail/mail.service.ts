@@ -5,33 +5,48 @@ import * as nodemailer from 'nodemailer';
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter | null = null;
 
-  constructor(private config: ConfigService) {
+  constructor(private config: ConfigService) {}
+
+  private getTransporter(): nodemailer.Transporter | null {
+    if (this.transporter) return this.transporter;
+
+    const host = this.config.get<string>('SMTP_HOST');
+    if (!host) {
+      this.logger.warn('SMTP_HOST tanımlı değil — e-posta gönderimi devre dışı');
+      return null;
+    }
+
     this.transporter = nodemailer.createTransport({
-      host: config.getOrThrow('SMTP_HOST'),
-      port: config.get<number>('SMTP_PORT') ?? 587,
+      host,
+      port: this.config.get<number>('SMTP_PORT') ?? 587,
       secure: false,
       auth: {
-        user: config.getOrThrow('SMTP_USER'),
-        pass: config.getOrThrow('SMTP_PASS'),
+        user: this.config.get('SMTP_USER'),
+        pass: this.config.get('SMTP_PASS'),
       },
     });
+
+    return this.transporter;
   }
 
   async sendEmailVerification(to: string, token: string): Promise<void> {
-    const url = `${this.config.getOrThrow('FRONTEND_URL')}/auth/verify-email?token=${token}`;
+    const url = `${this.config.get('FRONTEND_URL')}/auth/verify-email?token=${token}`;
     await this.send(to, 'E-posta adresinizi doğrulayın', this.verificationTemplate(url));
   }
 
   async sendPasswordReset(to: string, token: string): Promise<void> {
-    const url = `${this.config.getOrThrow('FRONTEND_URL')}/auth/reset-password?token=${token}`;
+    const url = `${this.config.get('FRONTEND_URL')}/auth/reset-password?token=${token}`;
     await this.send(to, 'Şifrenizi sıfırlayın', this.resetTemplate(url));
   }
 
   private async send(to: string, subject: string, html: string): Promise<void> {
+    const transporter = this.getTransporter();
+    if (!transporter) return;
+
     try {
-      await this.transporter.sendMail({
+      await transporter.sendMail({
         from: `"müteahitt" <${this.config.get('SMTP_FROM') ?? 'noreply@muteahitt.com'}>`,
         to,
         subject,
