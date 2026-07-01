@@ -4,7 +4,7 @@ WORKDIR /app
 
 # ─── Bağımlılıklar ───────────────────────────────────────────────────────────
 FROM base AS deps
-COPY package.json pnpm-workspace.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
