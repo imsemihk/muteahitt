@@ -7,8 +7,8 @@ COPY . .
 
 RUN pnpm install --frozen-lockfile
 
-# Prisma generate — root'tan çalıştır, schema path açık
-RUN pnpm --filter @muteahitt/api exec prisma generate --schema=/app/prisma/schema.prisma
+# prisma root devDependency olarak kurulu — node_modules/.bin/prisma kullanılır
+RUN node_modules/.bin/prisma generate --schema=./prisma/schema.prisma
 
 RUN pnpm --filter @muteahitt/shared build
 
