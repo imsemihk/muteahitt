@@ -13,10 +13,10 @@ import { UpdateOfferDto } from './dto/update-offer.dto';
 const OFFER_SELECT = {
   id: true,
   offerModel: true,
-  message: true,
-  revenueSharePercent: true,
-  cashOfferAmount: true,
-  estimatedMonths: true,
+  description: true,
+  floorSharePercent: true,
+  cashAmount: true,
+  estimatedDurationMonths: true,
   status: true,
   createdAt: true,
   contractor: {
@@ -61,7 +61,16 @@ export class OffersService {
       if (existing) throw new ConflictException('Bu ilana zaten teklif verdiniz');
 
       const created = await tx.offer.create({
-        data: { ...dto, listingId, contractorId, status: OfferStatus.PENDING },
+        data: {
+          listingId,
+          contractorId,
+          offerModel: dto.offerModel,
+          description: dto.message,
+          floorSharePercent: dto.revenueSharePercent,
+          cashAmount: dto.cashOfferAmount,
+          estimatedDurationMonths: dto.estimatedMonths,
+          status: OfferStatus.PENDING,
+        },
         select: OFFER_SELECT,
       });
 
@@ -136,7 +145,13 @@ export class OffersService {
 
     return this.prisma.offer.update({
       where: { id: offerId },
-      data: dto,
+      data: {
+        ...(dto.offerModel !== undefined && { offerModel: dto.offerModel }),
+        ...(dto.message !== undefined && { description: dto.message }),
+        ...(dto.revenueSharePercent !== undefined && { floorSharePercent: dto.revenueSharePercent }),
+        ...(dto.cashOfferAmount !== undefined && { cashAmount: dto.cashOfferAmount }),
+        ...(dto.estimatedMonths !== undefined && { estimatedDurationMonths: dto.estimatedMonths }),
+      },
       select: OFFER_SELECT,
     });
   }

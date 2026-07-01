@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { UserStatus, UserType } from '@prisma/client';
+import { UserRole, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
@@ -38,7 +38,7 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
 
-    const role = dto.userType === UserType.CONTRACTOR ? 'CONTRACTOR' : 'LAND_OWNER';
+    const role = dto.role === UserRole.CONTRACTOR ? UserRole.CONTRACTOR : UserRole.LAND_OWNER;
 
     const user = await this.prisma.user.create({
       data: {
@@ -47,7 +47,7 @@ export class AuthService {
         passwordHash,
         phone: dto.phone,
         userType: dto.userType,
-        role: role as any,
+        role,
         status: UserStatus.PENDING_EMAIL,
       },
       select: { id: true, email: true, fullName: true },
@@ -133,10 +133,9 @@ export class AuthService {
     const tokenHash = this.hashToken(token);
     const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL * 1000);
 
-    await this.prisma.passwordResetToken.upsert({
-      where: { userId: user.id },
-      create: { userId: user.id, tokenHash, expiresAt },
-      update: { tokenHash, expiresAt },
+    await this.prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+    await this.prisma.passwordResetToken.create({
+      data: { userId: user.id, tokenHash, expiresAt },
     });
 
     await this.mail.sendPasswordReset(email, token);
@@ -213,10 +212,9 @@ export class AuthService {
     const tokenHash = this.hashToken(token);
     const expiresAt = new Date(Date.now() + EMAIL_VERIFY_TTL * 1000);
 
-    await this.prisma.emailVerificationToken.upsert({
-      where: { userId },
-      create: { userId, tokenHash, expiresAt },
-      update: { tokenHash, expiresAt },
+    await this.prisma.emailVerificationToken.deleteMany({ where: { userId } });
+    await this.prisma.emailVerificationToken.create({
+      data: { userId, tokenHash, expiresAt },
     });
 
     await this.mail.sendEmailVerification(email, token);

@@ -117,7 +117,7 @@ export class ListingsService {
         ...PUBLIC_LISTING_SELECT,
         description: true,
         ownerId: true,
-        documents: { select: { id: true, name: true, url: true } },
+        documents: { select: { id: true, fileName: true, fileUrl: true } },
       },
     });
 
