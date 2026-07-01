@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import MarketingNav from '@/components/MarketingNav';
 import MarketingFooter from '@/components/MarketingFooter';
-import { posts } from '../page';
+import { posts } from '../posts-data';
 
 const categoryColors: Record<string, string> = {
   'Rehber': 'bg-blue-100 text-blue-700',

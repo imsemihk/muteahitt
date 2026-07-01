@@ -207,7 +207,7 @@ export default function ListingDetailPage() {
           <div className="flex items-center gap-4">
             {user ? (
               <>
-                <span className="text-sm text-gray-600">{user.fullName || user.email}</span>
+                <span className="text-sm text-gray-600">{user.email}</span>
                 <button
                   onClick={logout}
                   className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
