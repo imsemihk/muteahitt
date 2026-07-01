@@ -8,7 +8,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { UserType } from '@prisma/client';
+import { UserRole, UserType } from '@prisma/client';
 
 export class RegisterDto {
   @ApiProperty({ example: 'Ahmet Yılmaz' })
@@ -33,6 +33,10 @@ export class RegisterDto {
   @ApiProperty({ enum: UserType })
   @IsEnum(UserType)
   userType: UserType;
+
+  @ApiProperty({ enum: [UserRole.LAND_OWNER, UserRole.CONTRACTOR] })
+  @IsEnum(UserRole)
+  role: UserRole;
 
   @ApiProperty({ example: '05551234567' })
   @IsString()

@@ -237,7 +237,7 @@ export class PaymentsService {
       fullName: unlock.offer.contractor.fullName,
       email: unlock.offer.contractor.email,
       phone: unlock.offer.contractor.phone,
-      unlockedAt: unlock.createdAt,
+      unlockedAt: unlock.unlockedAt,
     };
   }
 
