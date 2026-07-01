@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Bağımlılıkları yükle
+        run: pnpm install --frozen-lockfile
+
+      - name: Shared paketi build et
+        run: pnpm build:shared
+
+      - name: TypeScript kontrolü (API)
+        run: pnpm --filter @muteahitt/api exec tsc --noEmit
+
+      - name: TypeScript kontrolü (Web)
+        run: pnpm --filter @muteahitt/web exec tsc --noEmit
+
+      - name: API build
+        run: pnpm --filter @muteahitt/api build
+
+      - name: Web build
+        run: pnpm --filter @muteahitt/web build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.muteahitt.com
+
+  prisma-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Bağımlılıkları yükle
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma schema doğrula
+        run: pnpm --filter @muteahitt/api exec prisma validate

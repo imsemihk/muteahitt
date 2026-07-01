@@ -1,0 +1,43 @@
+# Bağımlılıklar
+node_modules/
+.pnp
+.pnp.js
+
+# Build çıktıları
+dist/
+.next/
+out/
+build/
+
+# Ortam değişkenleri — ASLA commit'leme
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Prisma
+prisma/migrations/*.sql.shadow
+
+# Loglar
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test
+coverage/
+.nyc_output/
+
+# Geçici
+*.tmp
+*.temp

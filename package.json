@@ -1,0 +1,14 @@
+{
+  "name": "muteahitt",
+  "private": true,
+  "scripts": {
+    "dev:api": "pnpm --filter @muteahitt/api dev",
+    "dev:web": "pnpm --filter @muteahitt/web dev",
+    "dev": "pnpm --parallel dev:api dev:web",
+    "build:shared": "pnpm --filter @muteahitt/shared build",
+    "build": "pnpm build:shared && pnpm --filter @muteahitt/api build && pnpm --filter @muteahitt/web build"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

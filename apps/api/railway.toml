@@ -1,0 +1,20 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "apps/api/Dockerfile"
+# Railway proje kökünden build context kullanır
+buildContext = "."
+
+[deploy]
+startCommand = "node apps/api/dist/main.js"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[[deploy.environmentVariables]]
+# Railway Secrets panelinden set edilmeli — buraya yazılmaz
+# DATABASE_URL, REDIS_URL, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET,
+# ENCRYPTION_KEY, RESEND_API_KEY, MAIL_FROM,
+# IYZICO_API_KEY, IYZICO_SECRET_KEY, IYZICO_BASE_URL,
+# R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,
+# R2_BUCKET_NAME, R2_PUBLIC_URL, FRONTEND_URL
