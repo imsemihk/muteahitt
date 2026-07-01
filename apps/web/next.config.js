@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@muteahitt/shared'],
@@ -8,6 +10,10 @@ const nextConfig = {
         hostname: '*.r2.dev',
       },
     ],
+  },
+  webpack(config) {
+    config.resolve.alias['@'] = path.resolve(__dirname);
+    return config;
   },
 };
 
