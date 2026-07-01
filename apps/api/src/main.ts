@@ -11,8 +11,14 @@ async function bootstrap() {
 
   app.use(helmet());
 
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:3000',
+    /\.vercel\.app$/,
+  ].filter(Boolean);
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
   });
 
