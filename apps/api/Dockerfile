@@ -6,8 +6,8 @@ COPY . .
 
 RUN pnpm install --frozen-lockfile
 
-# Prisma client'ı ÖNCE generate et — nest build sırasında tipler gerekli
-RUN pnpm --filter @muteahitt/api exec prisma generate
+# schema.prisma monorepo kökünde olduğu için path açıkça belirtiliyor
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
 RUN pnpm --filter @muteahitt/shared build
 
