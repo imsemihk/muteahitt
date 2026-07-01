@@ -8,6 +8,9 @@
     "build:shared": "pnpm --filter @muteahitt/shared build",
     "build": "pnpm build:shared && pnpm --filter @muteahitt/api build && pnpm --filter @muteahitt/web build"
   },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
   "devDependencies": {
     "prisma": "^5.22.0",
     "typescript": "^5.4.0"
