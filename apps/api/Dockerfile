@@ -1,4 +1,5 @@
 FROM node:22-alpine
+RUN apk add --no-cache openssl libc6-compat
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 WORKDIR /app
 
@@ -6,8 +7,8 @@ COPY . .
 
 RUN pnpm install --frozen-lockfile
 
-# schema.prisma monorepo kökünde olduğu için path açıkça belirtiliyor
-RUN cd apps/api && pnpm exec prisma generate --schema=../../prisma/schema.prisma
+# Prisma generate — root'tan çalıştır, schema path açık
+RUN pnpm --filter @muteahitt/api exec prisma generate --schema=/app/prisma/schema.prisma
 
 RUN pnpm --filter @muteahitt/shared build
 
