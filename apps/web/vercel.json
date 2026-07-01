@@ -2,8 +2,5 @@
   "framework": "nextjs",
   "buildCommand": "cd ../.. && pnpm build:shared && pnpm --filter @muteahitt/web build",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "outputDirectory": ".next",
-  "env": {
-    "NEXT_PUBLIC_API_URL": "@api_url"
-  }
+  "outputDirectory": ".next"
 }

@@ -41,3 +41,4 @@ coverage/
 # Geçici
 *.tmp
 *.temp
+.vercel
