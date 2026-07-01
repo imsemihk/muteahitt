@@ -46,7 +46,7 @@ export interface IyzicoResult {
 @Injectable()
 export class IyzicoService {
   private readonly logger = new Logger(IyzicoService.name);
-  private readonly client: Iyzipay;
+  private readonly client: typeof Iyzipay;
 
   constructor(private readonly config: ConfigService) {
     this.client = new Iyzipay({
