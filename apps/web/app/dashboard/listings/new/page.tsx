@@ -5,8 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CreateListingSchema, type CreateListingInput } from '@muteahitt/shared';
 import { useCreateListing } from '../../../../hooks/useListings';
-import { ApiError } from '../../../../lib/api-client';
+import { ApiError, api } from '../../../../lib/api-client';
 import { useState } from 'react';
+import ImageUploader, { type UploadedImage } from '../../../../components/ImageUploader';
 
 const DEAL_TYPE_OPTIONS = [
   { value: 'KAT_KARSILIGI', label: 'Kat Karşılığı' },
@@ -27,6 +28,7 @@ const ZONING_TYPE_OPTIONS = [
 export default function NewListingPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState('');
+  const [pendingImages, setPendingImages] = useState<UploadedImage[]>([]);
   const createListing = useCreateListing();
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<CreateListingInput>({
@@ -38,6 +40,21 @@ export default function NewListingPage() {
     setServerError('');
     try {
       const listing = await createListing.mutateAsync(data);
+
+      // Confirm any images that were uploaded before listing was created
+      const unconfirmed = pendingImages.filter((img) => !img.id && !img.uploading && !img.error);
+      for (const img of unconfirmed) {
+        try {
+          await api.post('/storage/confirm/listing-image', {
+            listingId: listing.id,
+            key: img.key,
+            order: img.order,
+          });
+        } catch {
+          // Best effort — don't block navigation
+        }
+      }
+
       router.push(`/dashboard/listings`);
     } catch (err) {
       setServerError(err instanceof ApiError ? err.message : 'Bir hata oluştu');
@@ -139,6 +156,16 @@ export default function NewListingPage() {
               placeholder="5000000"
             />
           </div>
+        </div>
+
+        {/* Görseller */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Görseller</label>
+          <ImageUploader
+            images={pendingImages}
+            onChange={setPendingImages}
+            maxImages={8}
+          />
         </div>
 
         {serverError && (
